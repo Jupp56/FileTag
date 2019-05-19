@@ -1,4 +1,6 @@
-﻿namespace FileTag
+﻿using System.Windows;
+
+namespace FileTag
 {
     internal class FileT
     {
@@ -15,15 +17,16 @@
 
         public enum TagType
         {
-            Filetype,
-            Komponist,
-            Bearbeiter,
-            Genre,
             Anlass,
-            Saison,
-            Tonart,
+            Bearbeiter,
+            Besetzung,
+            Filetype,
+            Genre,
+            Komponist,
+            Saison,         
             Stimmung,
-            Sonstiges
+            Sonstiges,
+            Tonart,
         }
     }
 

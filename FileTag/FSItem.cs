@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace FileTag
 {
@@ -21,7 +22,7 @@ namespace FileTag
             SetFileSize(FileSizeInBytes);
             this.LastChanged = LastChanged;
             if(tags!=null) this.Tags = tags;
-
+            SearchForTagDuplicates();
             RebuildTagString();
             SetFileType();
         }
@@ -31,10 +32,24 @@ namespace FileTag
             Tags.Add(t);
             RebuildTagString();
         }
-        //#TODO
+
+        public void AddTags(List<FileT> tags)
+        {
+            this.Tags = tags;
+            SearchForTagDuplicates();
+            RebuildTagString();
+        }
+
         private void SearchForTagDuplicates()
         {
-            throw new NotImplementedException();
+
+            List<FileT> oldTags = new List<FileT>(Tags);
+            Tags.Clear();
+            foreach(FileT t in oldTags)
+            {
+                if(!Tags.Contains(t)) Tags.Add(t);
+            }
+            
         }
         private void SetFileSize(Int64 FileSizeInBytes)
         {
@@ -73,9 +88,9 @@ namespace FileTag
             }
             catch (Exception ex) {  }
         }
-
         private void RebuildTagString()
         {
+            SearchForTagDuplicates();
             TagString = "";
             foreach (FileT t in Tags)
             {

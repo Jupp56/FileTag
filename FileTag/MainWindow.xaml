@@ -27,22 +27,30 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Label x:Name="Header_Searchbar" Content="Search" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="0"/>
-            
+            <Label x:Name="Header_Folder" Content="Ordner" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="0"/>
+            <Button x:Name="Folder_Up" Grid.Row="1" Height="auto" Width="auto" Content="Nach oben" HorizontalAlignment="Left" Click="Folder_Up_Click" />
+            <ListBox x:Name="Folderbox" Grid.Row="2" MouseDoubleClick="Folderbox_MouseDoubleClick"/>
+
+            <Label x:Name="Header_Searchbar" Content="Search" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="3"/>
+
         </Grid>
-        
+
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-          
+
             <Label x:Name="Header_Filebrowser" Content="Browse and Organize" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="0"/>
 
-            <ListView x:Name="Folders" Margin="0,0,0,0" Background="#FFFFFF" BorderBrush="#CCC" Foreground="Black" Width="auto" HorizontalContentAlignment="Left" Grid.Row="1" Grid.ColumnSpan="1" Grid.Column="0" SelectionChanged="Folders_SelectionChanged">
+            <ListView x:Name="Files" Margin="0,0,0,0" Background="#FFFFFF" BorderBrush="#CCC" Foreground="Black" Width="auto" HorizontalContentAlignment="Left" Grid.Row="1" Grid.ColumnSpan="1" Grid.Column="0" SelectionChanged="Files_SelectionChanged">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
@@ -51,7 +59,7 @@
                 </ListView.ItemContainerStyle>
                 <ListView.View>
 
-                    <GridView x:Name="FoldersGrid">
+                    <GridView x:Name="ItemsGrid">
                         <GridView.ColumnHeaderContainerStyle>
                             <Style TargetType="GridViewColumnHeader">
                                 <Setter Property="Foreground" Value="Black"/>
@@ -67,8 +75,8 @@
                         <GridViewColumn Header="Größe" DisplayMemberBinding="{Binding FileSize}" Width="auto"/>
                         <GridViewColumn Header="Geändert" DisplayMemberBinding="{Binding LastChanged}" Width="auto"/>
                         <GridViewColumn Header="Tags" DisplayMemberBinding="{Binding TagString}" Width="auto"/>
-                        
-                        
+
+
                     </GridView>
                 </ListView.View>
 
@@ -76,15 +84,13 @@
             </ListView>
 
             <Label x:Name="Heading_Setproperties" Content="Daten bearbeiten" Style="{StaticResource H1}" Grid.Row="2"/>
-            <StackPanel Grid.Row="3">
-                <Label Content="Sonstige Tags:"/>
 
-                <DataGrid x:Name="AdditionalTags" ItemsSource="{Binding Value}" />
-                <Button x:Name="AddTag" Content="Tag hinzufügen" Click="AddTag_Click"/>
-                
-            </StackPanel>
+            <DataGrid x:Name="AdditionalTags" ItemsSource="{Binding Value}" CellEditEnding="AdditionalTags_CellEditEnding" VerticalScrollBarVisibility="Visible" Grid.Row="3"/>
+            <Button x:Name="AddTag" Content="Tag hinzufügen" Click="AddTag_Click" Grid.Row="4" Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Left" HorizontalContentAlignment="Center"/>
+
+
 
         </Grid>
     </Grid>
-    
+
 </Window>
