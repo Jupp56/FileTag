@@ -25,6 +25,17 @@ namespace FileTag
     public partial class MainWindow : Window
     {
         string CurrentFolder;
+        public string GetCurrentFolder()
+        {
+            return CurrentFolder;
+        }
+        public void SetCurrentFolder(string value)
+        {
+
+            this.CurrentFolder = value;
+            this.CurrentDrive = Path.GetPathRoot(value);
+        }
+        string CurrentDrive;
         string MetaFile = ".FileTag";
 
         private ObservableCollection<string> ActiveFolders = new ObservableCollection<string>();
@@ -32,19 +43,21 @@ namespace FileTag
 
         private ObservableCollection<FileT> AdditionalTag = new ObservableCollection<FileT>();
         private List<FileWithTags> FileTags = new List<FileWithTags>();
+        private ObservableCollection<FileWithTagString> SearchResults = new ObservableCollection<FileWithTagString>();
         private int LastSelectedFolderIndex = 0;
 
         public MainWindow()
         {
             //#REMOVE
-            CurrentFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-           
+            SetCurrentFolder(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+
             GetFolders();
             GetFiles();
             InitializeComponent();
             Folderbox.ItemsSource = ActiveFolders;
             Files.ItemsSource = ActiveFiles;
             AdditionalTags.ItemsSource = AdditionalTag;
+            Search_Results.ItemsSource = SearchResults;
 
             //WriteJSONInfo();
 
@@ -53,26 +66,26 @@ namespace FileTag
         private void GetFolders()
         {
             ActiveFolders.Clear();
-            foreach (string s in Directory.GetDirectories(CurrentFolder))
+            foreach (string s in Directory.GetDirectories(GetCurrentFolder()))
             {
                 ActiveFolders.Add(s);
             }
 
         }
+
         private void GetFiles()
         {
             ActiveFiles.Clear();
             ReadJSONInfo();
-            string[] Files = Directory.GetFiles(CurrentFolder);
+            string[] Files = Directory.GetFiles(GetCurrentFolder());
             List<FileInfo> FileInfos = new List<FileInfo>();
             foreach (string f in Files)
             {
-                FileInfos.Add(new FileInfo(System.IO.Path.Combine(CurrentFolder, f)));
+                FileInfos.Add(new FileInfo(Path.Combine(GetCurrentFolder(), f)));
             }
             foreach (FileInfo f in FileInfos)
             {
-                //Clash zwischen Name und lookup
-                ActiveFiles.Add(new FSItem(f.Name, f.Length, f.LastWriteTime, LookupTags(f.Name)));
+                ActiveFiles.Add(new FSItem(f.FullName, f.Length, f.LastWriteTime, LookupTags(f.FullName)));
             }
         }
 
@@ -84,19 +97,38 @@ namespace FileTag
             }
             catch { return null; }
         }
+
         private void ReadJSONInfo()
         {
             FileTags.Clear();
             try
             {
-                FileTags = JsonConvert.DeserializeObject<List<FileWithTags>>(File.ReadAllText(Path.Combine(CurrentFolder, MetaFile)));
+
+                if (File.Exists(Path.Combine(CurrentFolder, MetaFile)))
+                {
+                    FileTags = JsonConvert.DeserializeObject<List<FileWithTags>>(File.ReadAllText(Path.Combine(CurrentFolder, MetaFile)));
+                }
+                else
+                {
+                    FileTags = JsonConvert.DeserializeObject<List<FileWithTags>>(File.ReadAllText(Path.Combine(CurrentDrive, MetaFile)));
+                }
             }
-            catch { }
+            catch
+            {
+
+            }
         }
 
         private void WriteJSONInfo()
         {
-            File.WriteAllText(System.IO.Path.Combine(CurrentFolder, MetaFile), JsonConvert.SerializeObject(FileTags));
+            try
+            {
+                File.WriteAllText(Path.Combine(CurrentDrive, MetaFile), JsonConvert.SerializeObject(FileTags));
+            }
+            catch
+            {
+                File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), MetaFile), JsonConvert.SerializeObject(FileTags));
+            }
             //MessageBox.Show("Written to: " + System.IO.Path.Combine(CurrentFolder, MetaFile));
         }
 
@@ -114,54 +146,89 @@ namespace FileTag
         {
             try
             {
-                foreach (FileT t in AdditionalTag)
+                foreach (FileT tag in AdditionalTag)
                 {
-                    ActiveFiles[LastSelectedFolderIndex].AddTag(t);
+                    ActiveFiles[LastSelectedFolderIndex].AddTag(tag);
+                }
+                FileTags.Clear();
+
+                foreach (FSItem fsItem in ActiveFiles)
+                {
+                    if (fsItem.Tags.Count > 0) FileTags.Add(new FileWithTags(fsItem.CompletePath, fsItem.Tags));
                 }
 
             }
             catch { }
         }
 
+        private void Search(string searchString)
+        {
+            string[] tagstosearch = searchString.Split(' ');
+            SearchResults.Clear();
+            //MessageBox.Show("Searching: " + searchString);
+            foreach (string s in tagstosearch)
+            {
+                if (s != string.Empty)
+                {
+                    foreach (FileWithTags fwt in FileTags.FindAll(x => x.Tags.Exists(y => y.Value.Contains(s))))
+                    {
+                        SearchResults.Add(new FileWithTagString(Path.GetFileName(fwt.Name), fwt.Tags));
+                    }
+                }
+            }
+           
+        }
         private void Files_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             WriteLastChange();
             WriteJSONInfo();
             LastSelectedFolderIndex = Files.SelectedIndex;
             AdditionalTag.Clear();
-
-            foreach (FileT t in ActiveFiles[Files.SelectedIndex].Tags)
+            //MessageBox.Show(ActiveFiles.Count.ToString() + Files.SelectedIndex.ToString());
+            if (ActiveFiles.Count != 0)
             {
-                /*if(t.Type==FileT.TagType.Sonstiges)*/
-                AdditionalTag.Add(t);
+                foreach (FileT t in ActiveFiles[Files.SelectedIndex].Tags)
+                {
+                    /*if(t.Type==FileT.TagType.Sonstiges)*/
+                    AdditionalTag.Add(t);
+                }
             }
         }
 
         private void Folderbox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            CurrentFolder = Path.GetFullPath(ActiveFolders[Folderbox.SelectedIndex]);
+            SetCurrentFolder(Path.GetFullPath(ActiveFolders[Folderbox.SelectedIndex]));
             GetFolders();
             GetFiles();
         }
 
         private void Folder_Up_Click(object sender, RoutedEventArgs e)
         {
-            if (Path.GetDirectoryName(CurrentFolder) != null)
+            if (Path.GetDirectoryName(GetCurrentFolder()) != null)
             {
-                CurrentFolder = Path.GetDirectoryName(CurrentFolder);
+                SetCurrentFolder(Path.GetDirectoryName(GetCurrentFolder()));
                 GetFolders();
                 GetFiles();
             }
             else
             {
                 ActiveFolders.Clear();
-                foreach(string s in Directory.GetLogicalDrives())
+                foreach (string s in Directory.GetLogicalDrives())
                 {
                     ActiveFolders.Add(s);
                 }
                 ActiveFiles.Clear();
             }
-           
+        }
+
+        private void SearchBar_TextInput(object sender, TextCompositionEventArgs e)
+        {
+            Search(SearchBar.Text);
+        }
+
+        private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Search(SearchBar.Text);
         }
     }
 }

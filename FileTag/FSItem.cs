@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,18 +11,20 @@ namespace FileTag
     class FSItem
     {
         public string FileName { get; set; }
+        public string CompletePath { get; set; }
         public string FileSize { get; private set; }
         public string FileType { get; private set; }
         public DateTime LastChanged { get; set; }
         public List<FileT> Tags { get; private set; } = new List<FileT>();
         public string TagString { get; private set; }
 
-        public FSItem(string FileName, Int64 FileSizeInBytes, DateTime LastChanged, List<FileT> tags)
+        public FSItem(string CompletePath, Int64 FileSizeInBytes, DateTime LastChanged, List<FileT> Tags)
         {
-            this.FileName = FileName;
+            this.FileName = Path.GetFileName(CompletePath);
+            this.CompletePath = CompletePath;
             SetFileSize(FileSizeInBytes);
             this.LastChanged = LastChanged;
-            if(tags!=null) this.Tags = tags;
+            if(Tags!=null) this.Tags = Tags;
             SearchForTagDuplicates();
             RebuildTagString();
             SetFileType();

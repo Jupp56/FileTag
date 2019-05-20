@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FileTag"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="1600">
+        Title="MainWindow" WindowState="Maximized">
     <Window.Resources>
         <Style x:Key="H1" TargetType="Label">
 
@@ -14,83 +14,100 @@
             <Setter Property="FontWeight" Value="DemiBold"/>
 
         </Style>
+
+        <Style x:Key="Button" TargetType="Button">
+
+            <Setter Property="Background" Value="White"/>
+           
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="0" BorderThickness="1" BorderBrush="#AAAACC">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                            </ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+
+
+        </Style>
+
     </Window.Resources>
+
+
+
     <Grid>
+
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Label x:Name="Header_Folder" Content="Ordner" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="0"/>
-            <Button x:Name="Folder_Up" Grid.Row="1" Height="auto" Width="auto" Content="Nach oben" HorizontalAlignment="Left" Click="Folder_Up_Click" />
-            <ListBox x:Name="Folderbox" Grid.Row="2" MouseDoubleClick="Folderbox_MouseDoubleClick"/>
 
-            <Label x:Name="Header_Searchbar" Content="Search" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="3"/>
+        <Label x:Name="Header_Folder" Margin="10,5,10,5" Content="Ordner" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="0"/>
 
-        </Grid>
+        <ListBox x:Name="Folderbox" Margin="10,5,10,5" Grid.Row="1" MouseDoubleClick="Folderbox_MouseDoubleClick" BorderThickness="1" BorderBrush="#AAAADD"/>
+        <Button x:Name="Folder_Up" Margin="10,5,10,5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Style="{StaticResource Button}" Grid.Row="2" Height="auto" Width="auto" Content="Nach oben" HorizontalAlignment="Left" Click="Folder_Up_Click" />
 
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-
-            <Label x:Name="Header_Filebrowser" Content="Browse and Organize" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="0"/>
-
-            <ListView x:Name="Files" Margin="0,0,0,0" Background="#FFFFFF" BorderBrush="#CCC" Foreground="Black" Width="auto" HorizontalContentAlignment="Left" Grid.Row="1" Grid.ColumnSpan="1" Grid.Column="0" SelectionChanged="Files_SelectionChanged">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
-                    </Style>
-
-                </ListView.ItemContainerStyle>
-                <ListView.View>
-
-                    <GridView x:Name="ItemsGrid">
-                        <GridView.ColumnHeaderContainerStyle>
-                            <Style TargetType="GridViewColumnHeader">
-                                <Setter Property="Foreground" Value="Black"/>
-                                <Setter Property="Background" Value="#FFFFFF"/>
-                                <Setter Property="BorderBrush" Value="#4444FF"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            </Style>
+        <Label x:Name="Header_Searchbar" Margin="10,5,10,5" Content="Search" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="3"/>
+        <TextBox x:Name="SearchBar" Margin="10,5,10,5" BorderBrush="#CCCCCC" Text="" BorderThickness="1" HorizontalAlignment="Stretch" Grid.Column="0" Grid.Row="4" TextInput="SearchBar_TextInput" TextChanged="SearchBar_TextChanged"/>
+        <DataGrid x:Name="Search_Results" Margin="10,5,10,5" Background="White" BorderBrush="#AAAADD" ItemsSource="{Binding Name}" Grid.Row="5"/>
 
 
-                        </GridView.ColumnHeaderContainerStyle>
-                        <GridViewColumn Header="Datei" DisplayMemberBinding="{Binding FileName}" Width="auto"/>
-                        <GridViewColumn Header="Format" DisplayMemberBinding="{Binding FileType}" Width="auto"/>
-                        <GridViewColumn Header="Größe" DisplayMemberBinding="{Binding FileSize}" Width="auto"/>
-                        <GridViewColumn Header="Geändert" DisplayMemberBinding="{Binding LastChanged}" Width="auto"/>
-                        <GridViewColumn Header="Tags" DisplayMemberBinding="{Binding TagString}" Width="auto"/>
+        <Label x:Name="Header_Filebrowser" Margin="10,5,10,5" Content="Browse and Organize" Style="{StaticResource H1}" Grid.Column="1" Grid.Row="0"/>
+
+        <ListView x:Name="Files" Margin="10,5,10,5" Background="#FFFFFF" BorderBrush="#AAAADD" Foreground="Black" Width="auto" HorizontalContentAlignment="Left" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2" SelectionChanged="Files_SelectionChanged">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                </Style>
+
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+
+                <GridView x:Name="ItemsGrid">
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="Background" Value="#FFFFFF"/>
+                            <Setter Property="BorderBrush" Value="#4444FF"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
 
 
-                    </GridView>
-                </ListView.View>
+                    </GridView.ColumnHeaderContainerStyle>
+                    <GridViewColumn Header="Datei" DisplayMemberBinding="{Binding FileName}" Width="auto"/>
+                    <GridViewColumn Header="Format" DisplayMemberBinding="{Binding FileType}" Width="auto"/>
+                    <GridViewColumn Header="Größe" DisplayMemberBinding="{Binding FileSize}" Width="auto"/>
+                    <GridViewColumn Header="Geändert" DisplayMemberBinding="{Binding LastChanged}" Width="auto"/>
+                    <GridViewColumn Header="Tags" DisplayMemberBinding="{Binding TagString}" Width="auto"/>
 
 
-            </ListView>
+                </GridView>
+            </ListView.View>
 
-            <Label x:Name="Heading_Setproperties" Content="Daten bearbeiten" Style="{StaticResource H1}" Grid.Row="2"/>
 
-            <DataGrid x:Name="AdditionalTags" ItemsSource="{Binding Value}" CellEditEnding="AdditionalTags_CellEditEnding" VerticalScrollBarVisibility="Visible" Grid.Row="3"/>
-            <Button x:Name="AddTag" Content="Tag hinzufügen" Click="AddTag_Click" Grid.Row="4" Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Left" HorizontalContentAlignment="Center"/>
+        </ListView>
+
+        <Label x:Name="Heading_Setproperties" Margin="10,5,10,5" Content="Daten bearbeiten" Style="{StaticResource H1}" Grid.Column="1" Grid.Row="3"/>
+
+        <DataGrid x:Name="AdditionalTags" Margin="10,5,10,5" Background="White" BorderBrush="#AAAADD" ItemsSource="{Binding Value}" CellEditEnding="AdditionalTags_CellEditEnding" VerticalScrollBarVisibility="Visible" Grid.Column="1" Grid.Row="4" Grid.RowSpan="2"/>
+        <Button x:Name="AddTag" Margin="10,5,10,5" Content="Tag hinzufügen" Style="{StaticResource Button}" Click="AddTag_Click" Grid.Row="6" Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Grid.Column="1"/>
 
 
 
-        </Grid>
+
     </Grid>
 
 </Window>
