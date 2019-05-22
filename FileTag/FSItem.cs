@@ -24,7 +24,7 @@ namespace FileTag
             this.CompletePath = CompletePath;
             SetFileSize(FileSizeInBytes);
             this.LastChanged = LastChanged;
-            if(Tags!=null) this.Tags = Tags;
+            if (Tags != null) this.Tags = Tags;
             SearchForTagDuplicates();
             RebuildTagString();
             SetFileType();
@@ -43,45 +43,61 @@ namespace FileTag
             RebuildTagString();
         }
 
+        public void SetTags(List<FileT> tags)
+        {
+            if (tags != null)
+            {
+                Tags = tags;
+                SearchForTagDuplicates();
+                RebuildTagString();
+            }
+            else
+            {
+                Tags.Clear();
+            }
+        }
+
         private void SearchForTagDuplicates()
         {
-
-            List<FileT> oldTags = new List<FileT>(Tags);
-            Tags.Clear();
-            foreach(FileT t in oldTags)
+            if (Tags != null)
             {
-                if(!Tags.Contains(t)) Tags.Add(t);
+                List<FileT> oldTags = new List<FileT>(Tags);
+                Tags.Clear();
+                foreach (FileT t in oldTags)
+                {
+                    if (!Tags.Contains(t)) Tags.Add(t);
+                }
             }
-            
         }
         private void SetFileSize(Int64 FileSizeInBytes)
         {
             string FileEnding = "B";
             Int64 FileSizeChopped = FileSizeInBytes;
 
-
-            if (FileSizeInBytes > 1000000000000000)
+            if (FileSizeInBytes > 1000)
             {
-                FileSizeInBytes = FileSizeInBytes / 1000000000000000;
-                FileEnding = "PB";
-            }
-            if (FileSizeInBytes > 1000000000)
-            {
-                FileSizeInBytes = FileSizeInBytes / 1000000000;
-                FileEnding = "GB";
+                FileSizeChopped = FileSizeInBytes / 1000;
+                FileEnding = "KB";
             }
             if (FileSizeInBytes > 1000000)
             {
-                FileSizeInBytes = FileSizeInBytes / 1000000;
+                FileSizeChopped = FileSizeInBytes / 1000000;
                 FileEnding = "MB";
             }
-            if (FileSizeInBytes > 1000)
+            if (FileSizeInBytes > 1000000000)
             {
-                FileSizeInBytes = FileSizeInBytes / 1000;
-                FileEnding = "KB";
+                FileSizeChopped = FileSizeInBytes / 1000000000;
+                FileEnding = "GB";
+            }
+            if (FileSizeInBytes > 1000000000000000)
+            {
+                FileSizeChopped = FileSizeInBytes / 1000000000000000;
+                FileEnding = "PB";
             }
 
-            this.FileSize = FileSizeChopped.ToString() + " " + FileEnding;
+
+
+            FileSize = FileSizeChopped.ToString() + " " + FileEnding;
         }
         private void SetFileType()
         {
@@ -89,7 +105,7 @@ namespace FileTag
             {
                 FileType = Tags.Find(x => x.Type == FileT.TagType.Filetype).Value;
             }
-            catch (Exception ex) {  }
+            catch (Exception ex) { }
         }
         private void RebuildTagString()
         {

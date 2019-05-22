@@ -18,12 +18,14 @@
         <Style x:Key="Button" TargetType="Button">
 
             <Setter Property="Background" Value="White"/>
-           
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="Height" Value="Auto"/>
+
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border CornerRadius="0" BorderThickness="1" BorderBrush="#AAAACC">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
                             </ContentPresenter>
                         </Border>
                     </ControlTemplate>
@@ -60,8 +62,11 @@
         <ListBox x:Name="Folderbox" Margin="10,5,10,5" Grid.Row="1" MouseDoubleClick="Folderbox_MouseDoubleClick" BorderThickness="1" BorderBrush="#AAAADD"/>
         <Button x:Name="Folder_Up" Margin="10,5,10,5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Style="{StaticResource Button}" Grid.Row="2" Height="auto" Width="auto" Content="Nach oben" HorizontalAlignment="Left" Click="Folder_Up_Click" />
 
-        <Label x:Name="Header_Searchbar" Margin="10,5,10,5" Content="Search" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="3"/>
-        <TextBox x:Name="SearchBar" Margin="10,5,10,5" BorderBrush="#CCCCCC" Text="" BorderThickness="1" HorizontalAlignment="Stretch" Grid.Column="0" Grid.Row="4" TextInput="SearchBar_TextInput" TextChanged="SearchBar_TextChanged"/>
+        <Label x:Name="Header_Searchbar" Margin="10,5,10,5" Content="Suche" Style="{StaticResource H1}" Grid.Column="0" Grid.Row="3"/>
+
+        <TextBox x:Name="SearchBar" Margin="10,5,10,5" BorderBrush="#CCCCCC" Text="" BorderThickness="1" HorizontalAlignment="Stretch"  Grid.Column="0" Grid.Row="4" TextChanged="SearchBar_TextChanged"/>
+        <Button x:Name="BigSearch"  Margin="10,5,10,5"  Style="{StaticResource Button}" Content="Erweiterte Suche" HorizontalAlignment="Right" Grid.Row="4" Click="BigSearch_Click"/>
+
         <DataGrid x:Name="Search_Results" Margin="10,5,10,5" Background="White" BorderBrush="#AAAADD" ItemsSource="{Binding Name}" Grid.Row="5"/>
 
 
@@ -102,7 +107,7 @@
 
         <Label x:Name="Heading_Setproperties" Margin="10,5,10,5" Content="Daten bearbeiten" Style="{StaticResource H1}" Grid.Column="1" Grid.Row="3"/>
 
-        <DataGrid x:Name="AdditionalTags" Margin="10,5,10,5" Background="White" BorderBrush="#AAAADD" ItemsSource="{Binding Value}" CellEditEnding="AdditionalTags_CellEditEnding" VerticalScrollBarVisibility="Visible" Grid.Column="1" Grid.Row="4" Grid.RowSpan="2"/>
+        <DataGrid x:Name="AdditionalTags" Margin="10,5,10,5" Background="White" BorderBrush="#AAAADD" ItemsSource="{Binding Value}" CellEditEnding="AdditionalTags_CellEditEnding" VerticalScrollBarVisibility="Visible" Grid.Column="1" Grid.Row="4" Grid.RowSpan="2" SelectionChanged="AdditionalTags_SelectionChanged"/>
         <Button x:Name="AddTag" Margin="10,5,10,5" Content="Tag hinzufügen" Style="{StaticResource Button}" Click="AddTag_Click" Grid.Row="6" Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Grid.Column="1"/>
 
 
