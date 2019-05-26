@@ -75,7 +75,8 @@ namespace FileTag
             {
                 try
                 {
-                    foreach (FileWithTagString fwt in JSONHandler.ReadJSONInfo(s, MainWindow.MetaFile))
+                    //#ACHTUNG
+                    foreach (FileWithTagString fwt in JSONHandler.ReadJSONInfoFromDirectory(s, MainWindow.MetaFile, ""))
                     {
                         results.Add(fwt);
                     }

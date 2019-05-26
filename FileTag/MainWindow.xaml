@@ -72,7 +72,7 @@
 
         <Label x:Name="Header_Filebrowser" Margin="10,5,10,5" Content="Browse and Organize" Style="{StaticResource H1}" Grid.Column="1" Grid.Row="0"/>
 
-        <ListView x:Name="Files" Margin="10,5,10,5" Background="#FFFFFF" BorderBrush="#AAAADD" Foreground="Black" Width="auto" HorizontalContentAlignment="Left" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2" SelectionChanged="Files_SelectionChanged">
+        <ListView x:Name="Files" Margin="10,5,10,5" Background="#FFFFFF" BorderBrush="#AAAADD" Foreground="Black" Width="auto" HorizontalContentAlignment="Left" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2" SelectionChanged="Files_SelectionChanged" MouseDoubleClick="Files_MouseDoubleClick">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>

@@ -24,7 +24,7 @@ namespace FileTag
     /// </summary>
     public partial class MainWindow : Window
     {
-        string CurrentFolder;
+        private string CurrentFolder;
         public string GetCurrentFolder()
         {
             return CurrentFolder;
@@ -43,7 +43,7 @@ namespace FileTag
         private ObservableCollection<FileT> AdditionalTag = new ObservableCollection<FileT>();
         private ObservableCollection<FileWithTagString> SearchResults = new ObservableCollection<FileWithTagString>();
         private List<FileWithTagString> FileTags = new List<FileWithTagString>();
-        private int LastSelectedFileIndex = 0;
+        private int LastSelectedFileIndex = -1;
 
         public MainWindow()
         {
@@ -76,7 +76,7 @@ namespace FileTag
         {
             ActiveFiles.Clear();
 
-            FileTags = JSONHandler.ReadJSONInfo(CurrentDrive, MetaFile);
+            FileTags = JSONHandler.ReadJSONInfoFromDirectory(CurrentDrive, MetaFile, GetCurrentFolder());
             string[] Files = Directory.GetFiles(GetCurrentFolder());
             List<FileInfo> FileInfos = new List<FileInfo>();
             foreach (string file in Files)
@@ -91,7 +91,8 @@ namespace FileTag
 
         private void UpdateFiles()
         {
-            ActiveFiles[LastSelectedFileIndex].SetTags(AdditionalTag.ToList());
+            if (ActiveFiles != null && ActiveFiles.Count > 0 && LastSelectedFileIndex >= 0 && AdditionalTag != null)
+                ActiveFiles[LastSelectedFileIndex].SetTags(AdditionalTag.ToList());
         }
 
         private List<FileT> LookupTags(string filename)
@@ -101,17 +102,6 @@ namespace FileTag
                 return FileTags.Find(x => x.FullName == filename).Tags;
             }
             catch { return null; }
-        }
-
-        private void AddTag_Click(object sender, RoutedEventArgs e)
-        {
-            AdditionalTag.Add(new FileT("NewItem", true, FileT.TagType.Sonstiges));
-            SaveState();
-        }
-
-        private void AdditionalTags_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
-        {
-            SaveState();
         }
 
         private void UpdateFileTags()
@@ -129,10 +119,50 @@ namespace FileTag
             catch { }
         }
 
+        private void SaveState()
+        {
+            if (ActiveFiles.Count > 0)
+            {
+                UpdateFiles();
+                UpdateFileTags();
+                JSONHandler.WriteJSONInfo(CurrentDrive, MetaFile, CurrentFolder, FileTags);
+            }
+        }
+
+        private void Files_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (!OpenFileWithStandardProgram(ActiveFiles[Files.SelectedIndex].CompletePath)) MessageBox.Show("The File " + ActiveFiles[Files.SelectedIndex].CompletePath + " could not be opened.");
+        }
+
+        public bool OpenFileWithStandardProgram(string Path)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Path);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void AddTag_Click(object sender, RoutedEventArgs e)
+        {
+            AdditionalTag.Add(new FileT("NewItem", true, FileT.TagType.Sonstiges));
+            SaveState();
+        }
+
+        private void AdditionalTags_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            SaveState();
+        }
+
         private void Files_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SaveState();
             LastSelectedFileIndex = Files.SelectedIndex;
+            //MessageBox.Show("selectedIndex Set");
             AdditionalTag.Clear();
             //MessageBox.Show(ActiveFiles.Count.ToString() + Files.SelectedIndex.ToString());
             if (ActiveFiles.Count != 0)
@@ -154,6 +184,8 @@ namespace FileTag
 
         private void Folder_Up_Click(object sender, RoutedEventArgs e)
         {
+            SaveState();
+
             if (Path.GetDirectoryName(GetCurrentFolder()) != null)
             {
                 SetCurrentFolder(Path.GetDirectoryName(GetCurrentFolder()));
@@ -191,13 +223,6 @@ namespace FileTag
         {
             SearchWindow searchWindow = new SearchWindow();
             searchWindow.ShowDialog();
-        }
-
-        private void SaveState()
-        {
-            UpdateFiles();
-            UpdateFileTags();
-            JSONHandler.WriteJSONInfo(CurrentDrive, MetaFile, FileTags);
         }
     }
 }
