@@ -46,7 +46,7 @@ namespace FileTag
 
 
             SearchResults.ItemsSource = searchResults;
-            searchResults.Add(new FileWithTagString("blah", new List<FileT>() { new FileT("blub", true, FileT.TagType.Anlass) }));
+            //searchResults.Add(new FileWithTagString("blah", new List<FileT>() { new FileT("blub", true, FileT.TagType.Anlass) }));
         }
 
         private void Searchterm1_TextChanged(object sender, TextChangedEventArgs e)

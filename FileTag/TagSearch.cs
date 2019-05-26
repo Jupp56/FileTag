@@ -54,7 +54,7 @@ namespace FileTag
                 {
                     foreach (FileWithTagString fwt in filesWithTags.FindAll(x => x.Tags.Exists(y => y.Value.Contains(s)) || x.Name.Contains(s)))
                     {
-                        results.Add(new FileWithTagString(Path.GetFileName(fwt.Name), fwt.Tags));
+                        results.Add(new FileWithTagString(fwt.Name, fwt.Tags));
                     }
                 }
             }

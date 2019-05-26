@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,16 +16,16 @@ namespace FileTag
         public string FileSize { get; private set; }
         public string FileType { get; private set; }
         public DateTime LastChanged { get; set; }
-        public List<FileT> Tags { get; private set; } = new List<FileT>();
+        public ObservableCollection<FileT> Tags { get; private set; } = new ObservableCollection<FileT>();
         public string TagString { get; private set; }
 
-        public FSItem(string CompletePath, Int64 FileSizeInBytes, DateTime LastChanged, List<FileT> Tags)
+        public FSItem(string CompletePath, long FileSizeInBytes, DateTime LastChanged, List<FileT> Tags)
         {
             this.FileName = Path.GetFileName(CompletePath);
             this.CompletePath = CompletePath;
             SetFileSize(FileSizeInBytes);
             this.LastChanged = LastChanged;
-            if (Tags != null) this.Tags = Tags;
+            if (Tags != null) SetTags(Tags);
             SearchForTagDuplicates();
             RebuildTagString();
             SetFileType();
@@ -38,23 +39,23 @@ namespace FileTag
 
         public void AddTags(List<FileT> tags)
         {
-            this.Tags = tags;
-            SearchForTagDuplicates();
-            RebuildTagString();
+            if (tags != null)
+            {
+                foreach (FileT tag in tags)
+                {
+                    Tags.Add(tag);
+                }
+
+                SearchForTagDuplicates();
+                RebuildTagString();
+            }
         }
 
         public void SetTags(List<FileT> tags)
         {
-            if (tags != null)
-            {
-                Tags = tags;
-                SearchForTagDuplicates();
-                RebuildTagString();
-            }
-            else
-            {
-                Tags.Clear();
-            }
+            Tags.Clear();
+            AddTags(tags);
+            RebuildTagString();
         }
 
         private void SearchForTagDuplicates()
@@ -103,13 +104,12 @@ namespace FileTag
         {
             try
             {
-                FileType = Tags.Find(x => x.Type == FileT.TagType.Filetype).Value;
+                FileType = Tags.First(x => x.Type == FileT.TagType.Filetype).Value;
             }
-            catch (Exception ex) { }
+            catch  { }
         }
         private void RebuildTagString()
         {
-            SearchForTagDuplicates();
             TagString = "";
             foreach (FileT t in Tags)
             {

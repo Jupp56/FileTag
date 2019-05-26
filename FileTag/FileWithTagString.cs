@@ -18,7 +18,7 @@ namespace FileTag
         {
             this.FullName = FullName;
             this.Name = Path.GetFileName(FullName);
-            this.Tags = Tags;
+            this.Tags = new List<FileT>(Tags);
             BuildTagString();
         }
 
@@ -56,6 +56,8 @@ namespace FileTag
 
         public override bool Equals(object obj)
         {
+            if (obj == null||!(obj is FileWithTagString)) return false;
+            
             FileWithTagString param = obj as FileWithTagString;
 
             return (param.Name == this.Name && param.TagString == this.TagString);
