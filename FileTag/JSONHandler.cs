@@ -22,24 +22,25 @@ namespace FileTag
 
                 tagDirectory = ReadJSONInfo(Path.Combine(CurrentDrive, MetaFile));
 
-                if (tagDirectory == null)
+                if (tagDirectory is null)
                 {
                     tagDirectory = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
                 }
 
-                if (tagDirectory == null)
+                if (tagDirectory is null)
                 {
                     return new List<FileWithTagString>();
                 }
 
                 //Search only for the wanted directory in the tagDirectory object, which contains all directories on this drive with tags in them
 
-
-                foreach (string partPath in BuildAllSubdirPathsWithoutFirst(Folder))
+                List<string> paths = BuildAllSubdirPaths(Folder);
+                paths.RemoveAt(0);
+                foreach (string partPath in paths)
                 {
-
                     tagDirectory = tagDirectory.SubDirectories.Find(x => x.Name == partPath);
                 }
+                if (tagDirectory is null) return new List<FileWithTagString>();
             }
             catch
             {
@@ -47,29 +48,6 @@ namespace FileTag
             }
 
             return tagDirectory.Files;
-        }
-
-        //Builds back a complete, valid path for each the subdirectories generated before. So it i.e. searches for "C:/users/exampleuser" instead of "exampleuser"
-        public static List<string> BuildAllSubdirPathsWithoutFirst(string path)
-        {
-            char[] patharr = path.ToArray();
-            List<int> positions = new List<int>();
-            for (int i = 0; i < patharr.Length; i++)
-            {
-                if (patharr[i] == '\\') positions.Add(i);
-            }
-
-            List<string> results = new List<string>();
-
-            foreach(int position in positions)
-            {
-                results.Add(path.Substring(0, position+1));
-                MessageBox.Show(path.Substring(0, position+1));
-            }
-
-            results.Add(path);
-            results.RemoveAt(0);
-            return results;
         }
 
         public static TagDirectory ReadJSONInfo(string PathToJSON)
@@ -106,7 +84,7 @@ namespace FileTag
             {
                 SaveState = ReadJSONInfo(Path.Combine(CurrentDrive, MetaFile));
 
-                if (SaveState == null) SaveState = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+                if (SaveState is null) SaveState = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
             }
 
             catch
@@ -149,6 +127,31 @@ namespace FileTag
                 }
             }
         }
+
+        public static List<string> BuildAllSubdirPaths(string path)
+        {
+
+            //Creates a complete, valid path for each or the subdirectories in the path. So when given "C:/users/exampleuser", it outputs the list {"C:/users", "C:/users/exampleuser}
+
+            char[] patharr = path.ToArray();
+            List<int> positions = new List<int>();
+
+            for (int i = 0; i < patharr.Length; i++)
+            {
+                if (patharr[i] == '\\') positions.Add(i);
+            }
+
+            List<string> results = new List<string>();
+
+            foreach (int position in positions)
+            {
+                results.Add(path.Substring(0, position + 1));
+            }
+
+            results.Add(path);
+
+            return results;
+        }
     }
 
     class TagDirectory
@@ -178,6 +181,7 @@ namespace FileTag
             {
                 SetSubdirectories(tagDirectory.SubDirectories);
                 SetFiles(tagDirectory.Files);
+
                 return true;
             }
             else
@@ -200,19 +204,25 @@ namespace FileTag
 
         public void AddDirectory(TagDirectory tagDirectory)
         {
-            List<string> subdirpaths = new List<string>(JSONHandler.BuildAllSubdirPathsWithoutFirst(tagDirectory.Name));
+            List<string> subdirpaths = new List<string>(JSONHandler.BuildAllSubdirPaths(tagDirectory.Name));
 
             RecursiveDirAdd(this, subdirpaths, tagDirectory);
         }
 
         private void RecursiveDirAdd(TagDirectory DirToAddInto, List<string> paths, TagDirectory DirToAdd)
         {
-            if (DirToAddInto.SubDirectories != null)
+            if (!(DirToAddInto.SubDirectories is null))4325()(/)()
             {
-                if (paths.Count > 2 && DirToAddInto.SubDirectories.Exists(x => x.Name == paths[1]))
+                if (paths.Count > 2)
                 {
-                    paths.RemoveAt(0);
+                    if (!DirToAddInto.SubDirectories.Exists(x => x.Name == paths[1]))
+                    {
+                        DirToAddInto.SubDirectories.Add(new TagDirectory(new List<TagDirectory>(), new List<FileWithTagString>(), paths[1]));
+                        paths.RemoveAt(0);
+                    }
+
                     RecursiveDirAdd(DirToAddInto.SubDirectories.Find(x => x.Name == paths[1]), paths, DirToAdd);
+
                 }
 
                 else
@@ -224,10 +234,10 @@ namespace FileTag
             else
             {
                 DirToAddInto.SubDirectories = new List<TagDirectory>();
+
                 RecursiveDirAdd(DirToAddInto, paths, DirToAdd);
             }
         }
-
 
         public void SetSubdirectories(List<TagDirectory> Subdirs)
         {
@@ -271,6 +281,7 @@ namespace FileTag
 
             return result;
         }
+
         public static bool operator !=(TagDirectory left, TagDirectory right)
         {
             bool result = true;
