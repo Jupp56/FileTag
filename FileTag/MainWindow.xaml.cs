@@ -77,12 +77,15 @@ namespace FileTag
             ActiveFiles.Clear();
 
             FileTags = JSONHandler.ReadJSONInfoFromDirectory(CurrentDrive, MetaFile, GetCurrentFolder());
+
             string[] Files = Directory.GetFiles(GetCurrentFolder());
             List<FileInfo> FileInfos = new List<FileInfo>();
+
             foreach (string file in Files)
             {
                 FileInfos.Add(new FileInfo(Path.Combine(GetCurrentFolder(), file)));
             }
+
             foreach (FileInfo f in FileInfos)
             {
                 ActiveFiles.Add(new FSItem(f.FullName, f.Length, f.LastWriteTime, LookupTags(f.FullName)));
