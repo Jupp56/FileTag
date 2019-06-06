@@ -15,8 +15,6 @@ namespace FileTag
         {
             TagDirectory tagDirectory = new TagDirectory();
 
-
-
             try
             {
 
@@ -94,17 +92,13 @@ namespace FileTag
 
             //TODO: Proper check whether a save file or Directory even exists - This is a hack
 
-            if (!(SaveState is null)) SaveState.ReplaceDirectory(newSubDir);
+            if (!(SaveState is null)) SaveState.AddOrReplaceDirectory(newSubDir);
 
             else
             {
                 SaveState = new TagDirectory(new List<TagDirectory>(), new List<FileWithTagString>(), CurrentDrive);
 
-
-
-                // #Left here Hier stattdessen die noch zu schreibende addsubdirmethode aufrufen. Vielleicht auch besser nicht im foreach sondern intern lösen lassen.
-
-                SaveState.AddDirectory(newSubDir);
+                SaveState.AddOrReplaceDirectory(newSubDir);
             }
 
             try
@@ -130,30 +124,44 @@ namespace FileTag
 
         public static List<string> BuildAllSubdirPaths(string path)
         {
-
             //Creates a complete, valid path for each or the subdirectories in the path. So when given "C:/users/exampleuser", it outputs the list {"C:/users", "C:/users/exampleuser}
 
-            char[] patharr = path.ToArray();
-            List<int> positions = new List<int>();
-
-            for (int i = 0; i < patharr.Length; i++)
-            {
-                if (patharr[i] == '\\') positions.Add(i);
-            }
-
+            string[] subpaths = path.Split('\\');
             List<string> results = new List<string>();
-
-            foreach (int position in positions)
+            for (int i = 0; i < subpaths.Length; i++)
             {
-                results.Add(path.Substring(0, position + 1));
-            }
+                string partstring = "";
 
-            results.Add(path);
+                for (int j = 0; j <= i; j++)
+                {
+
+                    if (j == 0)
+                    {
+                        partstring = subpaths[j] + "\\";
+                    }
+                    else if(j == 1)
+                    {
+                        partstring += subpaths[j];
+                        
+                    }
+                    else
+                    {
+                        string[] pathstomerge = { partstring, subpaths[j] };
+                        partstring = string.Join("\\", pathstomerge);
+                    }
+                   
+                }
+
+                results.Add(partstring);
+            }
 
             return results;
         }
     }
 
+    /// <summary>
+    /// Class that represents a directory, with files (FileWithTagString) and subdirectories in it. New directory needed for every volume.
+    /// </summary>
     class TagDirectory
     {
         public List<TagDirectory> SubDirectories { get; private set; } = new List<TagDirectory>();
@@ -175,8 +183,14 @@ namespace FileTag
             this.Name = Name;
         }
 
-        public bool ReplaceDirectory(TagDirectory tagDirectory)
+        /// <summary>
+        /// Adds or replaces a directory in the TagDirectory file structure
+        /// </summary>
+        /// <param name="tagDirectory"></param>
+        /// <returns>bool successful (only for internal recursive use)</returns>
+        public bool AddOrReplaceDirectory(TagDirectory tagDirectory)
         {
+            //check, if this directory is the directory to replace
             if (Name == tagDirectory.Name)
             {
                 SetSubdirectories(tagDirectory.SubDirectories);
@@ -184,58 +198,44 @@ namespace FileTag
 
                 return true;
             }
-            else
+            //check if this directory is not a parent of the directory to replace
+            else if (!tagDirectory.Name.Contains(Name))
             {
-                foreach (TagDirectory subdir in SubDirectories)
-                {
-                    try
-                    {
-                        if (subdir.ReplaceDirectory(tagDirectory)) return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
-
                 return false;
             }
-        }
-
-        public void AddDirectory(TagDirectory tagDirectory)
-        {
-            List<string> subdirpaths = new List<string>(JSONHandler.BuildAllSubdirPaths(tagDirectory.Name));
-
-            RecursiveDirAdd(this, subdirpaths, tagDirectory);
-        }
-
-        private void RecursiveDirAdd(TagDirectory DirToAddInto, List<string> paths, TagDirectory DirToAdd)
-        {
-            if (!(DirToAddInto.SubDirectories is null))4325()(/)()
-            {
-                if (paths.Count > 2)
-                {
-                    if (!DirToAddInto.SubDirectories.Exists(x => x.Name == paths[1]))
-                    {
-                        DirToAddInto.SubDirectories.Add(new TagDirectory(new List<TagDirectory>(), new List<FileWithTagString>(), paths[1]));
-                        paths.RemoveAt(0);
-                    }
-
-                    RecursiveDirAdd(DirToAddInto.SubDirectories.Find(x => x.Name == paths[1]), paths, DirToAdd);
-
-                }
-
-                else
-                {
-                    DirToAddInto.SubDirectories.Add(DirToAdd);
-                }
-            }
-
+            //if this directory is a parent of the directory to replace
             else
             {
-                DirToAddInto.SubDirectories = new List<TagDirectory>();
+                //look if one of its subdirs contains or is the directory, use ReplaceDirectory on it
+                foreach (TagDirectory subdir in SubDirectories)
+                {
+                    if (tagDirectory.Name.Contains(subdir.Name))
+                    {
+                        return subdir.AddOrReplaceDirectory(tagDirectory);
+                    }
+                }
 
-                RecursiveDirAdd(DirToAddInto, paths, DirToAdd);
+                //if not, create a new subdirectory
+
+                //build the path of the tagDirectory to insert, but without the last folder (i.e. C:/users instead of C:/users/myuser)
+                List<string> subpaths = JSONHandler.BuildAllSubdirPaths(tagDirectory.Name);
+                string pathwithoutlast = subpaths[subpaths.Count - 2];
+
+                //if afforementioned subdir is the directory we want to insert, do it
+                if (Name == pathwithoutlast)
+                {
+                    SubDirectories.Add(tagDirectory);
+                    return true;
+                }
+                //if it is just a parent of that subdir, create a new subdir and recursively call this method on that subdir
+                else
+                {
+                    SubDirectories.Add(new TagDirectory(null, null, pathwithoutlast));
+
+                    SubDirectories.Find(x => x.Name == pathwithoutlast).AddOrReplaceDirectory(tagDirectory);
+
+                    return true;
+                }
             }
         }
 
@@ -292,6 +292,18 @@ namespace FileTag
             catch { }
 
             return result;
+        }
+    }
+
+    class SaveObject
+    {
+        public TagDirectory TagDirectory = new TagDirectory();
+        public string Version;
+
+        public SaveObject(TagDirectory tagDirectory, string version)
+        {
+            TagDirectory = tagDirectory;
+            Version = version;
         }
     }
 }

@@ -180,6 +180,7 @@ namespace FileTag
 
         private void Folderbox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (Folderbox.SelectedIndex == -1) return;
             SetCurrentFolder(Path.GetFullPath(ActiveFolders[Folderbox.SelectedIndex]));
             GetFolders();
             GetFiles();
