@@ -161,6 +161,12 @@ namespace FileTag
             SaveState();
         }
 
+        private void RemoveTag_Click(object sender, RoutedEventArgs e)
+        {
+            AdditionalTag.RemoveAt(AdditionalTags.SelectedIndex);
+            SaveState();
+        }
+
         private void AdditionalTags_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
             SaveState();
@@ -240,5 +246,7 @@ namespace FileTag
             MessageBox.Show("Eine oder mehrere Speicherdateien konnten nicht gelesen werden, da sie von einer neueren Version dieses Programmes erstellt wurden. Bitte installieren Sie die neueste Version dieses Programms, um die Dateien zu öffnen", "Fehler beim Einlesen einer Filetag-Datei", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.None);
         }
         #endregion
+
+        
     }
 }

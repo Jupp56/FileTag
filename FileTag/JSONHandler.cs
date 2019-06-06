@@ -85,7 +85,9 @@ namespace FileTag
 
             if (saveObject?.Version < version)
             {
+                //currently of course not working, as it will most probably crash when casted to the SaveObject type when JSON-deserializing
                 VersionUpdate(saveObject);
+
             }
             else if (saveObject?.Version > version)
             {
@@ -95,14 +97,14 @@ namespace FileTag
             return saveObject?.TagDirectory;
         }
 
-        
-
+        /// <summary>
+        /// Updates the database to a new data structure, if changes occured to the data structure
+        /// </summary>
+        /// <param name="saveObject"></param>
         private static void VersionUpdate(SaveObject saveObject)
         {
             return;
         }
-
-
 
         /// <summary>
         /// Writes the FilesWithTags into the JSON save file
@@ -145,7 +147,7 @@ namespace FileTag
 
             try
             {
-                
+
                 File.WriteAllText(Path.Combine(currentDrive, metaFile), JsonConvert.SerializeObject(saveObject, Formatting.Indented));
 
                 return true;
@@ -187,17 +189,17 @@ namespace FileTag
                     {
                         partstring = subpaths[j] + "\\";
                     }
-                    else if(j == 1)
+                    else if (j == 1)
                     {
                         partstring += subpaths[j];
-                        
+
                     }
                     else
                     {
                         string[] pathstomerge = { partstring, subpaths[j] };
                         partstring = string.Join("\\", pathstomerge);
                     }
-                   
+
                 }
 
                 results.Add(partstring);
