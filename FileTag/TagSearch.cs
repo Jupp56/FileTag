@@ -68,7 +68,7 @@ namespace FileTag
             return results.Distinct().ToList();
         }
 
-        public static List<FileWithTagString> GetSystemWideTags()
+        public static List<FileWithTagString> GetSystemWideTags(int dataStructureVersion)
         {
             List<FileWithTagString> results = new List<FileWithTagString>();
             foreach (string s in Environment.GetLogicalDrives())
@@ -76,7 +76,7 @@ namespace FileTag
                 try
                 {
                     //#ACHTUNG
-                    foreach (FileWithTagString fwt in JSONHandler.ReadJSONInfoFromDirectory(s, MainWindow.MetaFile, ""))
+                    foreach (FileWithTagString fwt in JSONHandler.ReadJSONInfoFromDirectory(s, MainWindow.MetaFile, "", dataStructureVersion))
                     {
                         results.Add(fwt);
                     }
@@ -86,7 +86,7 @@ namespace FileTag
             return results;
         }
 
-        public  enum SearchJunction
+        public enum SearchJunction
         {
             oder,
             und,

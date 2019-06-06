@@ -44,7 +44,7 @@ namespace FileTag
         private ObservableCollection<FileWithTagString> SearchResults = new ObservableCollection<FileWithTagString>();
         private List<FileWithTagString> FileTags = new List<FileWithTagString>();
         private int LastSelectedFileIndex = -1;
-
+        private const int DataStructureVersion = 2;
         public MainWindow()
         {
             //#REMOVE
@@ -57,9 +57,6 @@ namespace FileTag
             Files.ItemsSource = ActiveFiles;
             AdditionalTags.ItemsSource = AdditionalTag;
             Search_Results.ItemsSource = SearchResults;
-
-            //WriteJSONInfo();
-
         }
 
         private void GetFolders()
@@ -76,7 +73,15 @@ namespace FileTag
         {
             ActiveFiles.Clear();
 
-            FileTags = JSONHandler.ReadJSONInfoFromDirectory(CurrentDrive, MetaFile, GetCurrentFolder());
+            try
+            {
+                FileTags = JSONHandler.ReadJSONInfoFromDirectory(CurrentDrive, MetaFile, GetCurrentFolder(), DataStructureVersion);
+            }
+            catch(DataStructureVersionToHighException ex)
+            {
+                ShowUpdateRequired();
+                return;
+            }
 
             string[] Files = Directory.GetFiles(GetCurrentFolder());
             List<FileInfo> FileInfos = new List<FileInfo>();
@@ -128,7 +133,7 @@ namespace FileTag
             {
                 UpdateFiles();
                 UpdateFileTags();
-                JSONHandler.WriteJSONInfo(CurrentDrive, MetaFile, CurrentFolder, FileTags);
+                JSONHandler.WriteJSONInfo(CurrentDrive, MetaFile, CurrentFolder, FileTags, DataStructureVersion);
             }
         }
 
@@ -225,8 +230,15 @@ namespace FileTag
 
         private void BigSearch_Click(object sender, RoutedEventArgs e)
         {
-            SearchWindow searchWindow = new SearchWindow();
+            SearchWindow searchWindow = new SearchWindow(DataStructureVersion);
             searchWindow.ShowDialog();
         }
+
+        #region ActiveInteraction
+        private void ShowUpdateRequired()
+        {
+            MessageBox.Show("Eine oder mehrere Speicherdateien konnten nicht gelesen werden, da sie von einer neueren Version dieses Programmes erstellt wurden. Bitte installieren Sie die neueste Version dieses Programms, um die Dateien zu öffnen", "Fehler beim Einlesen einer Filetag-Datei", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.None);
+        }
+        #endregion
     }
 }

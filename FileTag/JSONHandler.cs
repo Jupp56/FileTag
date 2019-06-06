@@ -11,26 +11,35 @@ namespace FileTag
 {
     class JSONHandler
     {
-        public static List<FileWithTagString> ReadJSONInfoFromDirectory(string CurrentDrive, string MetaFile, string Folder)
+        /// <summary>
+        /// Returns the filetags saved in the JSON save file for a specific directory in the file system
+        /// </summary>
+        /// <param name="CurrentDrive"></param>
+        /// <param name="MetaFile"></param>
+        /// <param name="Folder"></param>
+        /// <returns>List of FileWithTagString</returns>
+        public static List<FileWithTagString> ReadJSONInfoFromDirectory(string CurrentDrive, string MetaFile, string Folder, int dataStructureVersion)
         {
             TagDirectory tagDirectory = new TagDirectory();
 
             try
             {
-
-                tagDirectory = ReadJSONInfo(Path.Combine(CurrentDrive, MetaFile));
+                //tries to read from the standard location (root directory of volume)
+                tagDirectory = ReadJSONInfo(Path.Combine(CurrentDrive, MetaFile), dataStructureVersion);
 
                 if (tagDirectory is null)
                 {
-                    tagDirectory = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+                    //tries to read from MyDocuments if root dir is inaccessible
+                    tagDirectory = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)), dataStructureVersion);
                 }
 
                 if (tagDirectory is null)
                 {
+                    //if still no file found, an empty set is returned
                     return new List<FileWithTagString>();
                 }
 
-                //Search only for the wanted directory in the tagDirectory object, which contains all directories on this drive with tags in them
+                //Filter everything but the wanted directory out of the tagDirectory object, which up until now contains all directories on this drive with tags in them
 
                 List<string> paths = BuildAllSubdirPaths(Folder);
                 paths.RemoveAt(0);
@@ -38,6 +47,7 @@ namespace FileTag
                 {
                     tagDirectory = tagDirectory.SubDirectories.Find(x => x.Name == partPath);
                 }
+                //if file existed but nothing was found (i.e. empty)
                 if (tagDirectory is null) return new List<FileWithTagString>();
             }
             catch
@@ -48,19 +58,24 @@ namespace FileTag
             return tagDirectory.Files;
         }
 
-        public static TagDirectory ReadJSONInfo(string PathToJSON)
+        /// <summary>
+        /// Reads the JSON save file from a given path
+        /// </summary>
+        /// <param name="PathToJSON"></param>
+        /// <returns>Returns TagDirectory with all FileWithTagString on the drive</returns>
+        private static TagDirectory ReadJSONInfo(string PathToJSON, int version)
         {
-            TagDirectory allFiles = null;
+            SaveObject saveObject = null;
 
             try
             {
                 if (File.Exists(PathToJSON))
                 {
-                    allFiles = JsonConvert.DeserializeObject<TagDirectory>(File.ReadAllText(PathToJSON));
+                    saveObject = JsonConvert.DeserializeObject<SaveObject>(File.ReadAllText(PathToJSON));
                 }
                 else
                 {
-                    allFiles = JsonConvert.DeserializeObject<TagDirectory>(File.ReadAllText(PathToJSON));
+                    saveObject = JsonConvert.DeserializeObject<SaveObject>(File.ReadAllText(PathToJSON));
                 }
             }
             catch
@@ -68,21 +83,48 @@ namespace FileTag
 
             }
 
-            return allFiles;
+            if (saveObject?.Version < version)
+            {
+                VersionUpdate(saveObject);
+            }
+            else if (saveObject?.Version > version)
+            {
+                throw new DataStructureVersionToHighException("Version of savefile newer than program version. Update required");
+            }
+
+            return saveObject?.TagDirectory;
         }
 
-        public static bool WriteJSONInfo(string CurrentDrive, string MetaFile, string DirectoryToUpdate, List<FileWithTagString> FilesWithTags)
+        
+
+        private static void VersionUpdate(SaveObject saveObject)
+        {
+            return;
+        }
+
+
+
+        /// <summary>
+        /// Writes the FilesWithTags into the JSON save file
+        /// </summary>
+        /// <param name="currentDrive"></param>
+        /// <param name="metaFile"></param>
+        /// <param name="directoryToUpdate"></param>
+        /// <param name="filesWithTags"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        public static bool WriteJSONInfo(string currentDrive, string metaFile, string directoryToUpdate, List<FileWithTagString> filesWithTags, int version)
         {
 
             TagDirectory SaveState = new TagDirectory();
 
-            TagDirectory newSubDir = new TagDirectory(null, FilesWithTags, DirectoryToUpdate);
+            TagDirectory newSubDir = new TagDirectory(null, filesWithTags, directoryToUpdate);
 
             try
             {
-                SaveState = ReadJSONInfo(Path.Combine(CurrentDrive, MetaFile));
+                SaveState = ReadJSONInfo(Path.Combine(currentDrive, metaFile), version);
 
-                if (SaveState is null) SaveState = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+                if (SaveState is null) SaveState = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)), version);
             }
 
             catch
@@ -90,20 +132,21 @@ namespace FileTag
                 return false;
             }
 
-            //TODO: Proper check whether a save file or Directory even exists - This is a hack
-
             if (!(SaveState is null)) SaveState.AddOrReplaceDirectory(newSubDir);
 
             else
             {
-                SaveState = new TagDirectory(new List<TagDirectory>(), new List<FileWithTagString>(), CurrentDrive);
+                SaveState = new TagDirectory(new List<TagDirectory>(), new List<FileWithTagString>(), currentDrive);
 
                 SaveState.AddOrReplaceDirectory(newSubDir);
             }
 
+            SaveObject saveObject = new SaveObject(SaveState, version);
+
             try
             {
-                File.WriteAllText(Path.Combine(CurrentDrive, MetaFile), JsonConvert.SerializeObject(SaveState, Formatting.Indented));
+                
+                File.WriteAllText(Path.Combine(currentDrive, metaFile), JsonConvert.SerializeObject(saveObject, Formatting.Indented));
 
                 return true;
             }
@@ -111,7 +154,7 @@ namespace FileTag
             {
                 try
                 {
-                    File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), MetaFile), JsonConvert.SerializeObject(SaveState));
+                    File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), metaFile), JsonConvert.SerializeObject(saveObject, Formatting.Indented));
 
                     return true;
                 }
@@ -122,12 +165,17 @@ namespace FileTag
             }
         }
 
+        /// <summary>
+        /// Creates a complete, valid path for each or the subdirectories in the path. So when given "C:/users/exampleuser", it outputs the list {"C:/users", "C:/users/exampleuser}
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static List<string> BuildAllSubdirPaths(string path)
         {
-            //Creates a complete, valid path for each or the subdirectories in the path. So when given "C:/users/exampleuser", it outputs the list {"C:/users", "C:/users/exampleuser}
 
             string[] subpaths = path.Split('\\');
             List<string> results = new List<string>();
+
             for (int i = 0; i < subpaths.Length; i++)
             {
                 string partstring = "";
@@ -193,7 +241,7 @@ namespace FileTag
             //check, if this directory is the directory to replace
             if (Name == tagDirectory.Name)
             {
-                SetSubdirectories(tagDirectory.SubDirectories);
+                //SetSubdirectories(tagDirectory.SubDirectories); Muss man ja nicht setzen, da immer nur ein Dir auf einer Ebene gleichzeitig gesetzt wird.
                 SetFiles(tagDirectory.Files);
 
                 return true;
@@ -298,12 +346,22 @@ namespace FileTag
     class SaveObject
     {
         public TagDirectory TagDirectory = new TagDirectory();
-        public string Version;
+        public int Version;
 
-        public SaveObject(TagDirectory tagDirectory, string version)
+        public SaveObject(TagDirectory tagDirectory, int version)
         {
             TagDirectory = tagDirectory;
             Version = version;
         }
+    }
+
+    public class DataStructureVersionToHighException : Exception
+    {
+        public DataStructureVersionToHighException() { }
+        public DataStructureVersionToHighException(string message) : base(message) { }
+        public DataStructureVersionToHighException(string message, Exception inner) : base(message, inner) { }
+        protected DataStructureVersionToHighException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

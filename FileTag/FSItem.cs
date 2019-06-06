@@ -70,6 +70,7 @@ namespace FileTag
                 }
             }
         }
+
         private void SetFileSize(Int64 FileSizeInBytes)
         {
             string FileEnding = "B";
@@ -100,6 +101,7 @@ namespace FileTag
 
             FileSize = FileSizeChopped.ToString() + " " + FileEnding;
         }
+
         private void SetFileType()
         {
             try
@@ -108,6 +110,10 @@ namespace FileTag
             }
             catch  { }
         }
+
+        /// <summary>
+        /// Deletes and newly builds the tag string (use when tag list is updated)
+        /// </summary>
         private void RebuildTagString()
         {
             TagString = "";

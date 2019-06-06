@@ -21,8 +21,10 @@ namespace FileTag
     public partial class SearchWindow : Window
     {
         private ObservableCollection<FileWithTagString> searchResults = new ObservableCollection<FileWithTagString>();
-        public SearchWindow()
+        private readonly int DataStructureVersion;
+        public SearchWindow(int dataStructureVersion)
         {
+            DataStructureVersion = dataStructureVersion;
             InitializeComponent();
             Title = "Erweiterte Suche";
 
@@ -46,7 +48,6 @@ namespace FileTag
 
 
             SearchResults.ItemsSource = searchResults;
-            //searchResults.Add(new FileWithTagString("blah", new List<FileT>() { new FileT("blub", true, FileT.TagType.Anlass) }));
         }
 
         private void Searchterm1_TextChanged(object sender, TextChangedEventArgs e)
@@ -61,7 +62,7 @@ namespace FileTag
                 new SearchObject((TagSearch.SearchJunction)And4.SelectedIndex, (FileT.TagType)Type4.SelectedIndex, Searchterm4.Text)
             };
 
-            List<FileWithTagString> Results = TagSearch.Search(searchObjects, TagSearch.GetSystemWideTags());
+            List<FileWithTagString> Results = TagSearch.Search(searchObjects, TagSearch.GetSystemWideTags(DataStructureVersion));
 
             foreach (FileWithTagString fileWithTagString in Results)
             {
