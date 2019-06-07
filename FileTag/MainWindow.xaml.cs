@@ -59,6 +59,18 @@ namespace FileTag
             Search_Results.ItemsSource = SearchResults;
         }
 
+
+        #region SaveAndLoad
+        private void SaveState()
+        {
+            if (ActiveFiles.Count > 0)
+            {
+                UpdateFiles();
+                UpdateFileTags();
+                JSONHandler.WriteJSONInfo(CurrentDrive, MetaFile, CurrentFolder, FileTags, DataStructureVersion);
+            }
+        }
+
         private void GetFolders()
         {
             ActiveFolders.Clear();
@@ -103,15 +115,6 @@ namespace FileTag
                 ActiveFiles[LastSelectedFileIndex].SetTags(AdditionalTag.ToList());
         }
 
-        private List<FileT> LookupTags(string filename)
-        {
-            try
-            {
-                return FileTags.Find(x => x.FullName == filename).Tags;
-            }
-            catch { return null; }
-        }
-
         private void UpdateFileTags()
         {
             try
@@ -127,19 +130,15 @@ namespace FileTag
             catch { }
         }
 
-        private void SaveState()
-        {
-            if (ActiveFiles.Count > 0)
-            {
-                UpdateFiles();
-                UpdateFileTags();
-                JSONHandler.WriteJSONInfo(CurrentDrive, MetaFile, CurrentFolder, FileTags, DataStructureVersion);
-            }
-        }
+        #endregion
 
-        private void Files_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private List<FileT> LookupTags(string filename)
         {
-            if (!OpenFileWithStandardProgram(ActiveFiles[Files.SelectedIndex].CompletePath)) MessageBox.Show("The File " + ActiveFiles[Files.SelectedIndex].CompletePath + " could not be opened.");
+            try
+            {
+                return FileTags.Find(x => x.FullName == filename).Tags;
+            }
+            catch { return null; }
         }
 
         public bool OpenFileWithStandardProgram(string Path)
@@ -155,22 +154,17 @@ namespace FileTag
             }
         }
 
-        private void AddTag_Click(object sender, RoutedEventArgs e)
+        #region UIEventHandlers
+
+        #region ActiveInteraction
+        private void ShowUpdateRequired()
         {
-            AdditionalTag.Add(new FileT("NewItem", true, FileT.TagType.Sonstiges));
-            SaveState();
+            MessageBox.Show("Eine oder mehrere Speicherdateien konnten nicht gelesen werden, da sie von einer neueren Version dieses Programmes erstellt wurden. Bitte installieren Sie die neueste Version dieses Programms, um die Dateien zu öffnen", "Fehler beim Einlesen einer Filetag-Datei", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.None);
         }
 
-        private void RemoveTag_Click(object sender, RoutedEventArgs e)
-        {
-            AdditionalTag.RemoveAt(AdditionalTags.SelectedIndex);
-            SaveState();
-        }
+        #endregion
 
-        private void AdditionalTags_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
-        {
-            SaveState();
-        }
+        #region fileNavigation
 
         private void Files_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -189,6 +183,11 @@ namespace FileTag
             }
         }
 
+        private void Files_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (!OpenFileWithStandardProgram(ActiveFiles[Files.SelectedIndex].CompletePath)) MessageBox.Show("The File " + ActiveFiles[Files.SelectedIndex].CompletePath + " could not be opened.");
+        }
+
         private void Folderbox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (Folderbox.SelectedIndex == -1) return;
@@ -196,6 +195,37 @@ namespace FileTag
             GetFolders();
             GetFiles();
         }
+
+        #endregion
+
+        #region searchbar
+        private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            List<FileWithTagString> searchResults = TagSearch.Search(SearchBar.Text, FileTags);
+            SearchResults.Clear();
+            foreach (var x in searchResults)
+            {
+                SearchResults.Add(x);
+            }
+        }
+
+        #endregion
+
+        #region possibleAutoSavePoints
+        private void AdditionalTags_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            SaveState();
+        }
+
+        private void AdditionalTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //WriteLastChange();
+            //UpdateFiles();
+        }
+
+        #endregion
+
+        #region Buttons
 
         private void Folder_Up_Click(object sender, RoutedEventArgs e)
         {
@@ -218,35 +248,36 @@ namespace FileTag
             }
         }
 
-        private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            List<FileWithTagString> searchResults = TagSearch.Search(SearchBar.Text, FileTags);
-            SearchResults.Clear();
-            foreach (var x in searchResults)
-            {
-                SearchResults.Add(x);
-            }
-        }
-
-        private void AdditionalTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //WriteLastChange();
-            //UpdateFiles();
-        }
-
         private void BigSearch_Click(object sender, RoutedEventArgs e)
         {
             SearchWindow searchWindow = new SearchWindow(DataStructureVersion);
             searchWindow.ShowDialog();
         }
 
-        #region ActiveInteraction
-        private void ShowUpdateRequired()
+        #region bottom
+
+        private void AddTag_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Eine oder mehrere Speicherdateien konnten nicht gelesen werden, da sie von einer neueren Version dieses Programmes erstellt wurden. Bitte installieren Sie die neueste Version dieses Programms, um die Dateien zu öffnen", "Fehler beim Einlesen einer Filetag-Datei", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.None);
+            AdditionalTag.Add(new FileT("NewItem", true, FileT.TagType.Sonstiges));
+            SaveState();
         }
+
+        private void RemoveTag_Click(object sender, RoutedEventArgs e)
+        {
+            AdditionalTag.RemoveAt(AdditionalTags.SelectedIndex);
+            SaveState();
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            SaveState();
+        }
+
         #endregion
 
-        
+        #endregion
+
+        #endregion
+
     }
 }

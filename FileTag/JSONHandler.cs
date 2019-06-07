@@ -30,7 +30,7 @@ namespace FileTag
                 if (tagDirectory is null)
                 {
                     //tries to read from MyDocuments if root dir is inaccessible
-                    tagDirectory = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)), dataStructureVersion);
+                    tagDirectory = ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), MetaFile), dataStructureVersion);
                 }
 
                 if (tagDirectory is null)
@@ -70,10 +70,6 @@ namespace FileTag
             try
             {
                 if (File.Exists(PathToJSON))
-                {
-                    saveObject = JsonConvert.DeserializeObject<SaveObject>(File.ReadAllText(PathToJSON));
-                }
-                else
                 {
                     saveObject = JsonConvert.DeserializeObject<SaveObject>(File.ReadAllText(PathToJSON));
                 }
@@ -280,9 +276,16 @@ namespace FileTag
                 //if it is just a parent of that subdir, create a new subdir and recursively call this method on that subdir
                 else
                 {
-                    SubDirectories.Add(new TagDirectory(null, null, pathwithoutlast));
+                    //create the next missing subdir (one subdir deeper in file structure)
+                    string newSubdirName = "";
+                    for (int i = 0; i<subpaths.Count; i++)
+                    {
+                        if (subpaths[i] == Name) newSubdirName = subpaths[i + 1];
+                    }
 
-                    SubDirectories.Find(x => x.Name == pathwithoutlast).AddOrReplaceDirectory(tagDirectory);
+                    SubDirectories.Add(new TagDirectory(null, null, newSubdirName));
+
+                    SubDirectories.Find(x => x.Name == newSubdirName).AddOrReplaceDirectory(tagDirectory);
 
                     return true;
                 }
