@@ -110,6 +110,7 @@
         <DataGrid x:Name="AdditionalTags" Margin="10,5,10,5" Background="White" BorderBrush="#AAAADD" ItemsSource="{Binding Value}" CellEditEnding="AdditionalTags_CellEditEnding" VerticalScrollBarVisibility="Visible" Grid.Column="1" Grid.Row="4" Grid.RowSpan="2" SelectionChanged="AdditionalTags_SelectionChanged"/>
         <StackPanel Orientation="Horizontal" Grid.Row="6" Grid.Column="1">
             <Button x:Name="Save" Margin="10,5,10,5" Content="Speichern" Style="{StaticResource Button}" Click="Save_Click" Grid.Row="6" Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Right" HorizontalContentAlignment="Center" Grid.Column="1"/>
+            <!--<CheckBox x:Name="AutoSave" Margin="10,5,10,5" Content="Auto-Speichern" VerticalContentAlignment="Center"/>-->
             <Button x:Name="AddTag" Margin="10,5,10,5" Content="Tag hinzufügen" Style="{StaticResource Button}" Click="AddTag_Click"  Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Left" HorizontalContentAlignment="Center"/>
             <Button x:Name="RemoveTag" Margin="10,5,10,5" Content="Tag entfernen" Style="{StaticResource Button}" Click="RemoveTag_Click" Grid.Row="6" Height="auto" Width="auto" VerticalAlignment="Bottom" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Grid.Column="1"/>
         </StackPanel>

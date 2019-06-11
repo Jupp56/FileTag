@@ -7,17 +7,23 @@ using System.Threading.Tasks;
 
 namespace FileTag
 {
-    class TagSearch 
+    class TagSearch
     {
+        /// <summary>
+        /// For search window search
+        /// </summary>
+        /// <param name="searchObjects"></param>
+        /// <param name="filesWithTags"></param>
+        /// <returns></returns>
         public static List<FileWithTagString> Search(List<SearchObject> searchObjects, List<FileWithTagString> filesWithTags)
         {
             List<FileWithTagString> searchResults = new List<FileWithTagString>();
 
-            foreach(SearchObject searchObject in searchObjects)
+            foreach (SearchObject searchObject in searchObjects)
             {
                 if (searchObject.TagName == string.Empty) continue;
-                List<FileWithTagString> searchResult = Search(searchObject.TagName, filesWithTags);
-                
+                List<FileWithTagString> searchResult = Search(searchObject.TagName, filesWithTags, false);
+
                 switch (searchObject.Junction)
                 {
                     case (SearchJunction.und):
@@ -26,7 +32,7 @@ namespace FileTag
                     case (SearchJunction.oder):
                         searchResults = searchResults.Union(searchResult).ToList();
                         break;
-                    case (SearchJunction.nicht):              
+                    case (SearchJunction.nicht):
                         searchResults = searchResults.Union(new List<FileWithTagString>(filesWithTags).Where(x => !searchResult.Contains(x))).ToList();
                         break;
                     case (SearchJunction.undNicht):
@@ -37,14 +43,37 @@ namespace FileTag
             //searchResults = RemoveDoubles(searchResults);
             return searchResults;
         }
-        public static List<FileWithTagString> Search(string searchString, List<FileWithTagString> filesWithTags)
+        /// <summary>
+        /// For quicksearchbar and as helping struct for searchwindow search
+        /// </summary>
+        /// <param name="searchString"></param>
+        /// <param name="filesWithTags"></param>
+        /// <param name="allowMultipleTagsWithWhiteSpaces"></param>
+        /// <returns></returns>
+        public static List<FileWithTagString> Search(string searchString, List<FileWithTagString> filesWithTags, bool allowMultipleTagsWithWhiteSpaces)
         {
             string[] emptyset = { string.Empty };
-            string[] tagstosearch = searchString.Split(' ').Except(emptyset).ToArray();        
+            string[] tagstosearch;
+
+            if (allowMultipleTagsWithWhiteSpaces)
+            {
+                
+                tagstosearch = searchString.Split(' ').Except(emptyset).ToArray();
+            }
+            else
+            {
+                tagstosearch = new string[] { searchString };
+            }
             return Search(tagstosearch, filesWithTags);
         }
 
-        public static List<FileWithTagString> Search(string[] tagstosearch, List<FileWithTagString> filesWithTags)
+        /// <summary>s
+        /// Actual class-internal search method
+        /// </summary>
+        /// <param name="tagstosearch"></param>
+        /// <param name="filesWithTags"></param>
+        /// <returns></returns>
+        private static List<FileWithTagString> Search(string[] tagstosearch, List<FileWithTagString> filesWithTags)
         {
             List<FileWithTagString> results = new List<FileWithTagString>();
 
@@ -62,7 +91,7 @@ namespace FileTag
             return results;
 
         }
-        
+
         private static List<FileWithTagString> RemoveDoubles(List<FileWithTagString> results)
         {
             return results.Distinct().ToList();
@@ -75,14 +104,28 @@ namespace FileTag
             {
                 try
                 {
-                    //#ACHTUNG
-                    foreach (FileWithTagString fwt in JSONHandler.ReadJSONInfoFromDirectory(s, MainWindow.MetaFile, "", dataStructureVersion))
-                    {
-                        results.Add(fwt);
-                    }
+                    TagDirectory tagDir = JSONHandler.ReadJSONInfo(Path.Combine(s, MainWindow.MetaFile), dataStructureVersion);
+                    if(tagDir is null) tagDir = JSONHandler.ReadJSONInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), MainWindow.MetaFile), dataStructureVersion);
+                    results = ExtractAllTagsFromTagDir(tagDir);
                 }
                 catch { }
             }
+            return results;
+        }
+
+        private static List<FileWithTagString> ExtractAllTagsFromTagDir(TagDirectory tagDir)
+        {
+            List<FileWithTagString> results = new List<FileWithTagString>();
+            foreach (FileWithTagString f in tagDir.Files)
+            {
+                results.Add(f);
+            }
+
+            foreach (TagDirectory subDir in tagDir.SubDirectories)
+            {
+                results.AddRange(ExtractAllTagsFromTagDir(subDir));
+            }
+
             return results;
         }
 

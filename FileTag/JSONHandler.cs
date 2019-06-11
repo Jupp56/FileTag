@@ -63,7 +63,7 @@ namespace FileTag
         /// </summary>
         /// <param name="PathToJSON"></param>
         /// <returns>Returns TagDirectory with all FileWithTagString on the drive</returns>
-        private static TagDirectory ReadJSONInfo(string PathToJSON, int version)
+        public static TagDirectory ReadJSONInfo(string PathToJSON, int version)
         {
             SaveObject saveObject = null;
 
@@ -210,10 +210,13 @@ namespace FileTag
     /// </summary>
     class TagDirectory
     {
+        [JsonProperty("SD")]
         public List<TagDirectory> SubDirectories { get; private set; } = new List<TagDirectory>();
 
+        [JsonProperty("F")]
         public List<FileWithTagString> Files { get; private set; } = new List<FileWithTagString>();
 
+        [JsonProperty("N")]
         ///complete path of that directory. More space-consuming but easier and faster to process.
         public string Name;
 

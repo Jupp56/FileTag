@@ -59,7 +59,6 @@ namespace FileTag
             Search_Results.ItemsSource = SearchResults;
         }
 
-
         #region SaveAndLoad
         private void SaveState()
         {
@@ -154,8 +153,6 @@ namespace FileTag
             }
         }
 
-        #region UIEventHandlers
-
         #region ActiveInteraction
         private void ShowUpdateRequired()
         {
@@ -164,20 +161,20 @@ namespace FileTag
 
         #endregion
 
+        #region UIEventHandlers
+
         #region fileNavigation
 
         private void Files_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SaveState();
             LastSelectedFileIndex = Files.SelectedIndex;
-            //MessageBox.Show("selectedIndex Set");
             AdditionalTag.Clear();
-            //MessageBox.Show(ActiveFiles.Count.ToString() + Files.SelectedIndex.ToString());
+
             if (ActiveFiles.Count != 0)
             {
                 foreach (FileT t in ActiveFiles[Files.SelectedIndex].Tags)
                 {
-                    /*if(t.Type==FileT.TagType.Sonstiges)*/
                     AdditionalTag.Add(t);
                 }
             }
@@ -201,7 +198,7 @@ namespace FileTag
         #region searchbar
         private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
         {
-            List<FileWithTagString> searchResults = TagSearch.Search(SearchBar.Text, FileTags);
+            List<FileWithTagString> searchResults = TagSearch.Search(SearchBar.Text, FileTags, true);
             SearchResults.Clear();
             foreach (var x in searchResults)
             {

@@ -4,14 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace FileTag
 {
     class FileWithTagString
     {
+        [JsonProperty("FN")]
         public string FullName { get; private set; }
+        [JsonProperty("N")]
         public string Name { get; private set; }
+        [JsonProperty("T")]
         public List<FileT> Tags { get; private set; }
+        [JsonProperty("Ts")]
         public string TagString { get; private set; }
 
         public FileWithTagString(string FullName, List<FileT> Tags)
